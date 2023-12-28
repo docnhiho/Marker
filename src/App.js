@@ -1,82 +1,98 @@
+
 import React, { useState } from 'react';
 import Modal from 'react-modal';
-import './App.css';
 
-const customModalStyles = {
-  content: {
-    width: '300px', 
-    height: '200px', 
-    margin: 'auto',
-  },
-};
+Modal.setAppElement('#root');
 
 function App() {
-  const [markers, setMarkers] = useState([
-    { id: 1, x: 158, y: 122, comment: 'Point 1' },
-    { id: 2, x: 342, y: 122, comment: 'Point 2' },
-    { id: 3, x: 249, y: 376, comment: 'Point 3' },
-  ]);
+  const [markers, setMarkers] = useState([]); //marker
+  const [selectedMarker, setSelectedMarker] = useState(null); //select market for comment
+  const [commentsMap, setCommentsMap] = useState({}); //contains comments have id marker
+  const [comment, setComment] = useState(''); //comment
+  const [isModalOpen, setIsModalOpen] = useState(false); //open modal
 
-  const [selectedMarker, setSelectedMarker] = useState(null);
-  const [comment, setComment] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleImageClick = (event) => {
+    const { offsetX, offsetY } = event.nativeEvent;
+    const markerId = `${offsetX}-${offsetY}`;
+    const newMarker = { id: markerId, x: offsetX, y: offsetY };
+    setMarkers((prevMarkers) => [...prevMarkers, newMarker]); //create marker
+    setCommentsMap((prevCommentsMap) => ({ ...prevCommentsMap, [markerId]: [] })); //create empty session in list comment
 
-  const handleMarkerClick = (marker) => {
+  };
+
+  const handleMarkerClick = (event, marker) => {
+    event.stopPropagation();
     setSelectedMarker(marker);
-    setComment(marker.comment || ''); // Set comment from marker or empty string if undefined
     setIsModalOpen(true);
   };
 
-  const handleCommentChange = (e) => {
-    setComment(e.target.value);
-  };
+  const handleCommentSubmit = () => {
+    const currentMarkerId = selectedMarker.id;
+    const currentComments = commentsMap[currentMarkerId];
+    const newComment = { text: comment };
 
-  const handleModalClose = () => {
-    // Update comment in markers array
-    setMarkers((prevMarkers) =>
-      prevMarkers.map((marker) =>
-        marker.id === selectedMarker.id ? { ...marker, comment } : marker
-      )
-    );
-    setSelectedMarker(null);
-    setIsModalOpen(false);
+    // New comments will be added to the comment list
+    const updatedCommentsMap = {
+      ...commentsMap,
+      [currentMarkerId]: [...currentComments, newComment],
+    };
+    
+    setCommentsMap(updatedCommentsMap); //update state new comment 
+    setComment('');
   };
 
   return (
-    <div style={{ position: 'relative', width: '500px', height: '500px' }}>
-      <img
-        src={require('./heart.png')} // Replace with your image source
-        alt="Your Image Alt Text" // Replace with your alt text
-        style={{ width: '100%', height: '100%' }}
-      />
+    <div className="App">
+      <div className="relative" style={{ width: '500px', height: '500px' }} onClick={handleImageClick}>
+        <img src={require('./heart.png')} alt="Mark this image" className="absolute w-full h-full" />
+        {markers.map((marker) => (
+          <div
+            key={marker.id}
+            className="absolute"
+            style={{ left: marker.x, top: marker.y, cursor: 'pointer' }}
+            onClick={(event) => handleMarkerClick(event, marker)}
+          >📍
+          </div>
+        ))}
+      </div>
 
-      {markers.map((marker) => (
-        <div
-          key={marker.id}
-          className="marker"
-          style={{ position: 'absolute', left: marker.x, top: marker.y, cursor: 'pointer' }}
-          onClick={() => handleMarkerClick(marker)}
-        >
-          📍
-        </div>
-      ))}
-
+      {/* open modal */}
       <Modal
         isOpen={isModalOpen}
-        onRequestClose={handleModalClose}
-        contentLabel=""
-        style={customModalStyles}
+        onRequestClose={() => setIsModalOpen(false)}
+        contentLabel="Comments Modal"
+        style={
+          { content: { width: '300px', height: '400px', margin: 'auto' } }
+        }
       >
+        <h2 className="text-lg font-bold mb-2">Comments for Marker</h2>
+        <div className="mb-2">
+          {commentsMap[selectedMarker?.id]?.map((comment, index) => (  // show all comments 
+            <div key={index}>{comment.text}</div>
+          ))}
+        </div>
         <textarea
+          className="w-full p-2 mb-2 border border-gray-400 rounded"
           value={comment}
-          onChange={handleCommentChange}
-          placeholder="Comment..."
-          style={{ width: '100%', height: '80%' }}
-        />
-        <button onClick={handleModalClose}>Save</button>
+          onChange={(e) => setComment(e.target.value)}
+          rows="3"
+        ></textarea>
+        <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={handleCommentSubmit}>
+          Add Comment
+        </button>
       </Modal>
     </div>
   );
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+
