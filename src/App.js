@@ -1,10 +1,14 @@
 
 import React, { useState } from 'react';
 import Modal from 'react-modal';
+import ImgMaker from './hearts.svg'
 
 Modal.setAppElement('#root');
 
+
+
 function App() {
+
   const [markers, setMarkers] = useState([]); //marker
   const [selectedMarker, setSelectedMarker] = useState(null); //select market for comment
   const [commentsMap, setCommentsMap] = useState({}); //contains comments have id marker
@@ -36,15 +40,16 @@ function App() {
       ...commentsMap,
       [currentMarkerId]: [...currentComments, newComment],
     };
-    
+
     setCommentsMap(updatedCommentsMap); //update state new comment 
     setComment('');
   };
 
   return (
     <div className="App">
-      <div className="relative" style={{ width: '500px', height: '500px' }} onClick={handleImageClick}>
-        <img src={require('./heart.png')} alt="Mark this image" className="absolute w-full h-full" />
+      <div className="relative bg-slate-500" style={{ width: '500px', height: '500px' }} onClick={handleImageClick}>
+        {/* <img src={require('./heart.png')} className="absolute w-full h-full" /> */}
+        {/* <img src={ImgMaker} className='absolute w-full h-full' /> */}
         {markers.map((marker) => (
           <div
             key={marker.id}
